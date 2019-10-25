@@ -1,6 +1,9 @@
 import logging
 
+from flask import request
+
 logger = logging.getLogger(__name__)
 
-def process_callback(call_id):
-    print(call_id)
+
+def process_callback():
+    print(request.json)

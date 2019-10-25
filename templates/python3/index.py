@@ -50,10 +50,10 @@ def process():
     except json.JSONDecodeError:
         return {'error_code': REQUEST_NOT_JSON_FORMAT}
 
-    missing = populate_env_params(input_)
-    if missing is not None:
-        return {'error_code': MISSING_REQUIRED_PARAM,
-                'msg': 'Missing param: ' + missing}
+    # missing = populate_env_params(input_)
+    # if missing is not None:
+    #     return {'error_code': MISSING_REQUIRED_PARAM,
+    #             'msg': 'Missing param: ' + missing}
 
     # call user's handler
     try:

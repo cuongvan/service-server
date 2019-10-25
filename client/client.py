@@ -53,7 +53,7 @@ def show_result(self):
 
 requests.Response.show_result = show_result
 
-API = 'http://localhost:5000'
+API = 'http://localhost'
 
 action, func_name = parse_args()
 

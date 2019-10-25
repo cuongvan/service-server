@@ -11,10 +11,12 @@ from handlers import exec_service, manage_service, function_callback
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
+
 @app.route('/service', methods=['POST'])
 def handle_service():
     res = manage_service.create_new_service()
     return res.to_flask_response()
+
 
 @app.route('/service/<name>', methods=['PUT', 'DELETE'])
 def handle_one_service(name):
@@ -25,21 +27,24 @@ def handle_one_service(name):
 
     return res.to_flask_response()
 
+
 @app.route('/exec/<name>', methods=['POST'])
 def handle_exec(name):
     res = exec_service.exec_function_sync(name)
     return res.to_flask_response()
+
 
 @app.route('/exec-async/<name>', methods=['POST'])
 def handle_async_exec(name):
     res = exec_service.exec_function_async(name)
     return res.to_flask_response()
 
-@app.route('/callback/<call_id>', methods=['POST'])
-def handle_function_callback(call_id):
+
+@app.route('/callback', methods=['POST'])
+def handle_function_callback():
     # route used by openfaas, not user
     # update database / push result into queue, ...
-    function_callback.process_callback(call_id)
+    function_callback.process_callback()
     return ''
 
 
@@ -47,6 +52,7 @@ def handle_function_callback(call_id):
 def not_found(error):
     return make_response(common.Response(Error.BAD_REQUEST, msg='API path not found').to_flask_response())
 
+
 if __name__ == "__main__":
     background_worker.start_worker()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=80, debug=True)

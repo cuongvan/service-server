@@ -47,15 +47,13 @@ def exec_function_sync(name) -> Response:
 
 def exec_function_async(name) -> Response:
     data = request.json.get('data', {})
-    call_id = str(uuid1())
-    # cb_url = 'http://localhost:5000/callback/' + call_id
-    cb_url = 'https://en1bcxbjvxxa.x.pipedream.net/' + call_id
+    cb_url = 'http://192.168.100.6:80/callback'
+    # cb_url = 'https://en1bcxbjvxxa.x.pipedream.net/async/' + call_id
     # cb_url = 'http://localhost:9999'
     r = openfaas.invoke_function_async(name, data, environments.env, cb_url)
-    logger.info('Async call: function=%s, code=%d', name, r.status_code)
-
     code = r.status_code
     if code == status.ACCEPTED:
+        call_id = r.headers['X-Call-Id']
         return Response(Error.OK, status=status.ACCEPTED, data={ 'call_id': call_id })
     elif code == status.NOT_FOUND:
         return Response(Error.FUNCTION_NOT_FOUND, status=status.NOT_FOUND)
