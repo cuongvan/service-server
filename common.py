@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 from dataclasses import dataclass
 from flask import jsonify
@@ -28,7 +28,7 @@ class Error(IntEnum):
 class Response:
     error_code: Error
     msg: Optional[str] = None   # additional information, often exists when about error_code != 0
-    data: Optional[str] = None
+    data: Optional[Union[str, dict]] = None
     status: HTTPStatus = HTTPStatus.OK
 
     def to_dict(self) -> dict:
@@ -37,6 +37,7 @@ class Response:
             d['msg'] = self.msg
         if self.data is not None:
             d['data'] = self.data
+        d['error_code'] = self.error_code.name # DEBUG
         return d
 
     def to_flask_response(self):

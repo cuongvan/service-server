@@ -1,11 +1,15 @@
 #! /usr/bin/env python
+from pathlib import Path
 
 import requests, json, sys
 from pprint import PrettyPrinter
 from argparse import ArgumentParser
+
 pprint = PrettyPrinter(indent=4).pprint
 
 from enum import IntEnum
+
+
 class Error(IntEnum):
     OK = 0
 
@@ -24,6 +28,7 @@ class Error(IntEnum):
 
     NOT_INPLEMENTED = 99
 
+
 def parse_args():
     p = ArgumentParser()
     p.add_argument('action')
@@ -31,10 +36,11 @@ def parse_args():
     a = p.parse_args()
     return a.action, a.func_name
 
-def show_result(r):
+
+def show_result(self):
     try:
-        data = r.json()
-        data['error_code'] = Error(data['error_code']).name
+        data = self.json()
+        # data['error_code'] = Error(data['error_code']).name
         for key, val in data.items():
             try:
                 data[key] = json.loads(val)
@@ -42,34 +48,45 @@ def show_result(r):
                 pass
         print(json.dumps(data, indent=4))
     except json.JSONDecodeError:
-        print(r.text)
+        print(self.text)
+
+
+requests.Response.show_result = show_result
 
 API = 'http://localhost:5000'
 
 action, func_name = parse_args()
 
+func_dir = Path('funcs', func_name)
+
 if action == 'new':
-    data = { 'name': func_name }
+    data = {'name': func_name}
     files = {
-        'handler.py': ('name1', open('./data/handler.py', 'rb'), 'application/octet-stream'),
-        'requirements.txt': ('name2', open('./data/requirements.txt', 'rb'), 'application/octet-stream'),
+        'handler.py': ('name1', open(func_dir / 'handler.py', 'rb'), 'application/octet-stream'),
         'json': ('name3', json.dumps(data), 'application/json')
     }
 
+    if (func_dir / 'requirements.txt').exists():
+        files['requirements.txt'] =  ('name2', open(func_dir / 'requirements.txt', 'rb'), 'application/octet-stream'),
+
     r = requests.post(API + '/service', files=files)
-    show_result(r)
+    r.show_result()
 
 elif action == 'up':
     r = requests.put(API + '/service/' + func_name)
-    show_result(r)
+    r.show_result()
 
 elif action == 'del':
     r = requests.delete(API + '/service/' + func_name)
-    show_result(r)
+    r.show_result()
 
-elif action == 'exec':
+elif action == 'sync':
     r = requests.post(API + '/exec/' + func_name, json={})
-    show_result(r)
+    r.show_result()
+
+elif action == 'async':
+    r = requests.post(API + '/exec-async/' + func_name, json={})
+    r.show_result()
 
 else:
     print('??????')

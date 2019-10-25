@@ -45,7 +45,8 @@ def populate_env_params(request):
 def process():
     # try to convert input to json
     try:
-        input_ = json.loads(get_stdin())
+        stdin = get_stdin()
+        input_ = json.loads(stdin)
     except json.JSONDecodeError:
         return {'error_code': REQUEST_NOT_JSON_FORMAT}
 

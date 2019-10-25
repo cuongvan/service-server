@@ -9,12 +9,17 @@ from typing import Union
 
 from flask import request
 
+import background_worker
 import openfaas
 from common import Response, Error
 
 
+ROOT = Path('.').resolve()
+FUNCTIONS_DIR = ROOT / 'functions'
+
 def run_cmd(cmd, **kargs) -> int:
     return subprocess.call(cmd, shell=True, **kargs)
+
 
 @contextmanager
 def change_cwd(dir):
@@ -27,13 +32,12 @@ def change_cwd(dir):
         if cwd is not None:
             os.chdir(cwd)
 
-ROOT = Path('./functions')
-
 def rm_dir(path: Union[str, Path]):
     try:
         shutil.rmtree(path)
     except Exception:
         pass
+
 
 def rm_file(path: Union[str, Path]):
     if type(path) is str:
@@ -43,64 +47,39 @@ def rm_file(path: Union[str, Path]):
     except Exception:
         pass
 
+
 def remove_function_files(name):
-    rm_dir(ROOT / name)
-    rm_file(ROOT / (name + '.yml'))
-    rm_dir(ROOT / 'build' / name)
+    rm_dir(FUNCTIONS_DIR / name)
 
-# def build_image(func_name, handler_file, requir_file):
-#     remove_function_files(func_name)
-#
-#     # create template
-#     with change_cwd(ROOT):
-#         run_cmd('faas-cli new --lang python3 {}'.format(func_name))
-#
-#     # move user submmited files
-#     user_code_dir = ROOT / func_name
-#     with change_cwd(user_code_dir):
-#         handler_file.save('./handler.py')
-#         if requir_file is not None:
-#             requir_file.save('./requirements.txt')
-#
-#     # build image
-#     with change_cwd(ROOT):
-#         run_cmd('faas-cli build -f {}.yml'.format(func_name))
-#
-#     # TODO: push image to registy: faas-cli push
-
-def remove_function_files1(name):
-    rm_dir(ROOT / name)
-    rm_file(ROOT / (name + '.yml'))
-    rm_dir(ROOT / 'build' / name)
 
 def build_image(func_name, handler_file, requir_file):
     # image name == func_name
-    remove_function_files1(func_name)
-    template_dir = ROOT / 'template-fixing'
+    remove_function_files(func_name)
 
-
-    # create template
-    run_cmd('faas-cli new --lang python3 {}'.format(func_name), cwd=str(ROOT))
+    # create files
+    func_dir = FUNCTIONS_DIR / func_name
+    template_dir = ROOT / 'templates' / 'python3'
+    shutil.copytree(template_dir, func_dir)
 
     # move user submmited files
-    user_code_dir = ROOT / func_name
-    handler_file.save(str(user_code_dir / './handler.py'))
+    code_dir = func_dir / 'function'
+    handler_file.save(str(code_dir / './handler.py'))
     if requir_file is not None:
-        requir_file.save(str(user_code_dir / './requirements.txt'))
+        requir_file.save(str(code_dir / './requirements.txt'))
+    else:
+        (code_dir / './requirements.txt').touch()
 
     # build image
-    run_cmd('faas-cli build -f {}.yml'.format(func_name), cwd=str(ROOT))
+    run_cmd('docker build . -t {}'.format(func_name), cwd=str(func_dir))
 
-    # TODO: push image to registy: faas-cli push
 
 ###############################################################################
-# return: code
 def create_new_service() -> Response:
     if 'json' not in request.files:
-        return Response(Error.BAD_REQUEST, msg='Missing json data file')
+        return Response(Error.BAD_REQUEST, msg='Missing json data file', status=status.BAD_REQUEST)
 
     if 'handler.py' not in request.files:
-        return Response(Error.BAD_REQUEST, msg='Missing required file: handler.py')
+        return Response(Error.BAD_REQUEST, msg='Missing required file: handler.py', status=status.BAD_REQUEST)
     try:
         data = json.load(request.files['json'])
     except json.JSONDecodeError:
@@ -125,6 +104,7 @@ def create_new_service() -> Response:
     elif r.status_code == status.INTERNAL_SERVER_ERROR:
         return Response(Error.FAAS_SERVER_INTERNAL_ERROR)
 
+
 def delete_service(name) -> Response:
     # remove code directory in ROOT
     remove_function_files(name)
@@ -140,7 +120,23 @@ def delete_service(name) -> Response:
     # successfully removed function from faas server
 
     # delete docker image
-    run_cmd('docker image rm -f {}'.format(name)) # no exception!
+    def remove_image():
+        cmd = 'docker container ls -f ancestor=' + name
+        out = subprocess.check_output(cmd, shell=True)
+        out = out.decode('utf-8').strip()
+        lines = out.split('\n')
+        for i, l in enumerate(lines):
+            print(i, l)
+        running_containers = lines[1:]
+        if not running_containers:
+            ret = subprocess.call('docker image rm ' + name, shell=True)
+            if ret == 0:
+                return background_worker.SUCCESS
+            return None
+        else:
+            return None
+
+    background_worker.submit_task(remove_image)
 
     return Response(Error.OK)
 

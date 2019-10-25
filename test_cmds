@@ -1,0 +1,1 @@
+echo | http POST ':8080/function/long-run?CKAN_HOST=aaa&CKAN_PORT=999'

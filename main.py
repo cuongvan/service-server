@@ -1,9 +1,12 @@
 #! /usr/bin/env python3
+import time
 
 from flask import Flask, request, make_response
+
+import background_worker
 import common
 from common import Error
-from handlers import exec_service, manage_service
+from handlers import exec_service, manage_service, function_callback
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -29,13 +32,14 @@ def handle_exec(name):
 
 @app.route('/exec-async/<name>', methods=['POST'])
 def handle_async_exec(name):
-    res = exec_service.exec_function_sync(name)
+    res = exec_service.exec_function_async(name)
     return res.to_flask_response()
 
 @app.route('/callback/<call_id>', methods=['POST'])
 def handle_function_callback(call_id):
     # route used by openfaas, not user
     # update database / push result into queue, ...
+    function_callback.process_callback(call_id)
     return ''
 
 
@@ -44,4 +48,5 @@ def not_found(error):
     return make_response(common.Response(Error.BAD_REQUEST, msg='API path not found').to_flask_response())
 
 if __name__ == "__main__":
+    background_worker.start_worker()
     app.run(debug=True)

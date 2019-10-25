@@ -1,0 +1,17 @@
+Todos:
+- cho up file zip
+----- DONE ----------------------------
++ chia lại đường dẫn đúng kiểu REST API
++ remove trong thư mục build/
++ viết lại hàm build để gọi docker build
+------------------------------------------------------------
+Tests: mỗi loại một function
++ không bỏ file requirements
++ trả về các dạng data khác
+    + string
+    + dict
+    + None -> ""
++ async function
++ sync function exception
++ async func exception
++ remove image sau khi remove function
