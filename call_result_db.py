@@ -17,7 +17,8 @@ class DBConnection:
 
     def insert_result(self, call_id, service, status, output):
         # TODO move table name to config
-        query = 'INSERT INTO outs (call_id, service, time_done, status, output) VALUES (%s, %s, NOW(), %s, %s)'
+        query = ('INSERT INTO {} (call_id, service, time_done, status, output)' 
+                 'VALUES (%s, %s, NOW(), %s, %s)').format(project_conf.TABLE_NAME)
         value = (call_id, service, status, output)
         self.cursor.execute(query, value)
         self.conn.commit()

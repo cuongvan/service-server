@@ -10,4 +10,5 @@ MYSQL_CONF = {
     'user': 'root',
     'passwd': 'admin',
 }
+TABLE_NAME = 'outs'
 
