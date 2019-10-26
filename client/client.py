@@ -31,8 +31,8 @@ class Error(IntEnum):
 
 def parse_args():
     p = ArgumentParser()
-    p.add_argument('action')
     p.add_argument('func_name')
+    p.add_argument('action')
     a = p.parse_args()
     return a.action, a.func_name
 
@@ -53,14 +53,14 @@ def show_result(self):
 
 requests.Response.show_result = show_result
 
-API = 'http://localhost'
+API = 'http://localhost:5000'
 
 action, func_name = parse_args()
 
 func_dir = Path('funcs', func_name)
 
 if action == 'new':
-    data = {'name': func_name}
+    data = {'service_name': func_name}
     files = {
         'handler.py': ('name1', open(func_dir / 'handler.py', 'rb'), 'application/octet-stream'),
         'json': ('name3', json.dumps(data), 'application/json')
@@ -69,7 +69,7 @@ if action == 'new':
     if (func_dir / 'requirements.txt').exists():
         files['requirements.txt'] =  ('name2', open(func_dir / 'requirements.txt', 'rb'), 'application/octet-stream'),
 
-    r = requests.post(API + '/service', files=files)
+    r = requests.post(API + '/services', files=files)
     r.show_result()
 
 elif action == 'up':

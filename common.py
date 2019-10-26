@@ -2,34 +2,44 @@ from typing import Optional, Union
 
 from dataclasses import dataclass
 from flask import jsonify
-from enum import IntEnum
-from http import HTTPStatus
+from enum import auto, Enum
+from http import HTTPStatus as http
 
-class Error(IntEnum):
-    OK = 0
 
+class Error(str, Enum):
+    def _generate_next_value_(name, start, count, last_values):
+        return name
+
+    OK = auto()
+    ACCEPTED = auto()
     # requests
-    BAD_REQUEST = 1
-    FUNCTION_ALREADY_EXISTS = 2
-    FAAS_SERVER_INTERNAL_ERROR = 3
-    INTERNAL_SERVER_ERROR = 4
-    FUNCTION_NOT_FOUND = 5
+    BAD_REQUEST = auto()
+    MISSING_PARAM = auto()
+    MISSING_FILE = auto()
+    IS_NOT_JSON = auto()
 
+    FUNCTION_ALREADY_EXISTS = auto()
+    FAAS_SERVER_INTERNAL_ERROR = auto()
+    INTERNAL_SERVER_ERROR = auto()
+    FUNCTION_NOT_FOUND = auto()
     # execute
-    FUNCTION_TIMEOUT = 10
-    REQUEST_NOT_JSON_FORMAT = 11
-    MISSING_REQUIRED_PARAM = 12
-    FUNCTION_THROW_EXCEPTION = 13
+    FUNCTION_TIMEOUT = auto()
+    REQUEST_NOT_JSON_FORMAT = auto()
+    MISSING_REQUIRED_PARAM = auto()
+    FUNCTION_THROW_EXCEPTION = auto()
+    NOT_INPLEMENTED = auto()
 
-    NOT_INPLEMENTED = 99
+
+
+err = Error
 
 
 @dataclass
 class Response:
     error_code: Error
-    msg: Optional[str] = None   # additional information, often exists when about error_code != 0
+    msg: Optional[str] = None  # additional information, often exists when about error_code != 0
     data: Optional[Union[str, dict]] = None
-    status: HTTPStatus = HTTPStatus.OK
+    status: http = http.OK
 
     def to_dict(self) -> dict:
         d = dict(error_code=self.error_code)
@@ -37,10 +47,8 @@ class Response:
             d['msg'] = self.msg
         if self.data is not None:
             d['data'] = self.data
-        d['error_code'] = self.error_code.name # DEBUG
+        d['error_code'] = self.error_code.name  # DEBUG
         return d
 
     def to_flask_response(self):
         return jsonify(self.to_dict()), self.status
-
-

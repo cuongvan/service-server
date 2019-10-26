@@ -5,18 +5,12 @@ from flask import request
 import logging
 
 import openfaas
+import utils
 from common import Response, Error
-from uuid import uuid1
 
 import environments
 
-logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
-formatter = logging.BASIC_FORMAT
-handler.setFormatter(logging.Formatter(formatter))
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
-
+logger = utils.create_logger(__name__, logging.DEBUG)
 
 def exec_function_sync(name) -> Response:
     data = request.json or {}
@@ -54,7 +48,7 @@ def exec_function_async(name) -> Response:
     code = r.status_code
     if code == status.ACCEPTED:
         call_id = r.headers['X-Call-Id']
-        return Response(Error.OK, status=status.ACCEPTED, data={ 'call_id': call_id })
+        return Response(Error.OK, status=status.ACCEPTED, data={'call_id': call_id})
     elif code == status.NOT_FOUND:
         return Response(Error.FUNCTION_NOT_FOUND, status=status.NOT_FOUND)
     else:
