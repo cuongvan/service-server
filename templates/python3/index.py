@@ -3,19 +3,40 @@
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import sys, os, json
+from enum import Enum, auto
+import timeout_decorator
+
 from function import handler
 import traceback
 from urllib.parse import parse_qs
 
-OK = 0
-REQUEST_NOT_JSON_FORMAT = 11
-MISSING_REQUIRED_PARAM = 12
-FUNCTION_THROW_EXCEPTION = 13
 
+
+class err(str, Enum):
+    def _generate_next_value_(name, start, count, last_values):
+        return name
+
+    OK = auto()
+    ACCEPTED = auto()
+    # requests
+    BAD_REQUEST = auto()
+    MISSING_PARAM = auto()
+    MISSING_FILE = auto()
+    IS_NOT_JSON = auto()
+    FUNCTION_ALREADY_EXISTS = auto()
+    FUNCTION_NOT_FOUND = auto()
+
+    FAAS_SERVER_INTERNAL_ERROR = auto()
+    INTERNAL_SERVER_ERROR = auto()
+
+    # execute
+    FUNCTION_EXEC_SUCCESS = auto()
+    FUNCTION_TIMEOUT = auto()
+    FUNCTION_THROW_EXCEPTION = auto()
 
 def get_stdin():
     buf = ""
-    while (True):
+    while True:
         line = sys.stdin.readline()
         buf += line
         if line == "":
@@ -23,45 +44,35 @@ def get_stdin():
     return buf
 
 
-required_params = [
-    'CKAN_HOST',
-    'CKAN_PORT',
-]
-
-
-# returns: missing variable
-def populate_env_params(request):
+def populate_env_vars():
     params = os.environ.get('Http_Query', '')  # parse this
     params = parse_qs(params)
-    for p in required_params:
-        if p not in params.keys():
-            return p
-        else:
-            request[p] = params[p][0]
-    request['CKAN_PORT'] = int(request['CKAN_PORT'])
-    return None
+    for p, val in params.items():
+        os.environ[p] = val[0] # val is a list
 
 
 def process():
     # try to convert input to json
-    try:
-        stdin = get_stdin()
-        input_ = json.loads(stdin)
-    except json.JSONDecodeError:
-        return {'error_code': REQUEST_NOT_JSON_FORMAT}
+    populate_env_vars()
 
-    # missing = populate_env_params(input_)
-    # if missing is not None:
-    #     return {'error_code': MISSING_REQUIRED_PARAM,
-    #             'msg': 'Missing param: ' + missing}
+    # timeout
+    timeout = os.getenv('TIMEOUT', None)
+    if timeout is None:
+        return {'error': err.MISSING_PARAM, 'param': 'TIMEOUT'}
+    timeout = int(timeout)
+    @timeout_decorator.timeout(timeout)
+    def handle_wrapper(input_):
+        return handler.handle(input_)
 
     # call user's handler
     try:
-        return_val = handler.handle(input_)
+        return_val = handle_wrapper(get_stdin())
+    except timeout_decorator.TimeoutError:
+        return  {'error': err.FUNCTION_TIMEOUT}
     except Exception as e:
         return {
-            'error_code': FUNCTION_THROW_EXCEPTION,
-            'data': str(e) + '\n' + traceback.format_exc()
+            'error': err.FUNCTION_THROW_EXCEPTION,
+            'exeception': str(e) + '\n' + traceback.format_exc()
         }
 
     # convert return value to string
@@ -73,16 +84,13 @@ def process():
         return_val = str(return_val)
 
     # return function value as string
-    return {
-        'error_code': OK,
-        'data': return_val
-    }
+    return { 'error': err.FUNCTION_EXEC_SUCCESS,
+             'result': return_val}
 
 
 def main():
     json_ = process()
     print(json.dumps(json_))
-
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,68 @@
+OK:
+  type: Success
+  summary: No errors
+
+ACCEPTED:
+  type: Success
+  summary: Action has been queued (not done yet). Use other GET actions to query completed status
+
+BAD_REQUEST:
+  type: Bad Request
+  summary: A general error when no details is specify
+  out:
+    - msg: Error message
+
+MISSING_PARAM:
+  type: Bad Request
+  summary: Missing a required param in request body
+  out:
+    - param: Name of the missing param
+
+MISSING_FILE:
+  type: Bad Request
+  summary: Missing required file in request body
+  out:
+    - file: Name of the missing file
+
+IS_NOT_JSON:
+  type: Bad Request
+  summary: Request is not empty or not in json format
+  out: []
+
+FUNCTION_ALREADY_EXISTS:
+  type: Bad Request
+  summary: Function name already exists. Cannot create a new function the that same name
+  out: []
+
+FUNCTION_NOT_FOUND:
+  type: Bad Request
+  summary: Function name not exists. Cannot execute, update, delete, ... on this name
+  out: []
+
+
+FAAS_SERVER_INTERNAL_ERROR:
+  type: Internal Server Error
+  summary: Request to FaaS server causes 500 status
+  out: []
+
+INTERNAL_SERVER_ERROR:
+  type: Internal Server Error
+  summary: Some error happend inside the server
+  out: []
+
+FUNCTION_EXEC_SUCCESS:
+  type: Function Execution Error
+  summary: Function call success
+  out:
+    - result: Result of the function call in string format
+
+FUNCTION_TIMEOUT:
+  type: Function Execution Error
+  summary: Function call timeout
+
+FUNCTION_THROW_EXCEPTION:
+  type: Function Execution Error
+  summary: Function call timeout
+  out:
+    - exeception: The exeption + stacktrace in string format
+

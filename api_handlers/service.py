@@ -38,7 +38,6 @@ class OneService(Resource):
 
         handler_file_data, requirements_file_data = take_user_code_files()
 
-        handler_file_data, requirements_file_data = take_user_code_files()
         # pass build & redeploy task to task queue
         def create_function():
             try:

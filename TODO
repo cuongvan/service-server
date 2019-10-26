@@ -1,5 +1,6 @@
 Todos:
 - cho up file zip
+- function timeout trong index.py
 ----- DONE ----------------------------
 + chia lại đường dẫn đúng kiểu REST API
 + remove trong thư mục build/
@@ -15,3 +16,17 @@ Tests: mỗi loại một function
 + sync function exception
 + async func exception
 + remove image sau khi remove function
+
+
+index.py:
+    - missing param -> error + param
+    - error -> string
+
+- validate function name
+- đổi các biến cần thành biến môi trường, input vẫn giữa nguyên
+-------------------------------------------------------------
+docker container prune
+docker image prune
+-------------------------------------------------------------
+select service, status, output FROM outs ORDER by time_done;
+docker service scale func_queue-worker=5

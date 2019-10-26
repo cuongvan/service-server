@@ -1,0 +1,5 @@
+Param: binary/json
+
+Output:
+    - dictionary, string, numbers -> keep structure
+    - others: convert to string via str()

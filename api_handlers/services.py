@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -34,6 +35,8 @@ class Services(Resource):
             return {'error': err.MISSING_PARAM, 'param': 'service_name'}, http.BAD_REQUEST
 
         service_name = data['service_name']
+        if not re.match('[-a-z0-9]+', service_name):
+            return {'error': err.INVALID_NAME, 'msg': 'Name can only contain a-z, 0-9 and dashes (-)'}, http.BAD_REQUEST
 
         # Check if function exists
         r = openfaas.function_info(service_name)
@@ -61,7 +64,6 @@ class Services(Resource):
                     logger.warning("Deploy: receive unexpected status code: %d", r.status_code)
             finally:
                 return background_worker.SUCCESS
-
         background_worker.submit_task(create_function)
 
         return { 'error': err.ACCEPTED }, http.ACCEPTED
