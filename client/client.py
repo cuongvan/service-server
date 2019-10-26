@@ -73,7 +73,13 @@ if action == 'new':
     r.show_result()
 
 elif action == 'up':
-    r = requests.put(API + '/service/' + func_name)
+    files = {
+        'handler.py': ('name1', open(func_dir / 'handler.py', 'rb'), 'application/octet-stream'),
+    }
+
+    if (func_dir / 'requirements.txt').exists():
+        files['requirements.txt'] =  ('name2', open(func_dir / 'requirements.txt', 'rb'), 'application/octet-stream'),
+    r = requests.put(API + '/service/' + func_name, files=files)
     r.show_result()
 
 elif action == 'del':
@@ -88,5 +94,8 @@ elif action == 'async':
     r = requests.post(API + '/exec-async/' + func_name, json={})
     r.show_result()
 
+elif action == 'get':
+    r = requests.get(API + '/service/' + func_name)
+    r.show_result()
 else:
     print('??????')

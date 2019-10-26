@@ -20,6 +20,16 @@ def deploy_function(func_name) -> requests.Response:
     r = requests.post(url, json=data)
     return r
 
+def redeploy_function(func_name) -> requests.Response:
+    data = {
+        'service': func_name,
+        'image': func_name,
+        'envProcess': 'python3 index.py',
+    }
+    url = OPENFAAS_GATEWAY + '/system/functions'
+    r = requests.put(url, json=data)
+    return r
+
 
 def remove_function(func_name: str):
     data = {'functionName': func_name}
