@@ -8,7 +8,7 @@ import logging
 import openfaas
 import project_conf
 import utils
-from common import err, http
+from common import err, http, req_session
 
 import environments
 from project_conf import OPENFAAS_GATEWAY, EXEC_TIMEOUT
@@ -20,7 +20,7 @@ class SyncExec(Resource):
     def post(self, service_name):
         url = '{}/function/{}'.format(OPENFAAS_GATEWAY, service_name)
         try:
-            r = requests.post(
+            r = req_session.post(
                 url,
                 params=environments.env,
                 data=request.get_data(),
@@ -46,7 +46,7 @@ class AsyncExec(Resource):
         cb_url = project_conf.THIS_SERVER_HOST + '/callback/' + service_name
         # cb_url = 'https://en9gk6ah6047d.x.pipedream.net/' + service_name
         url = '{}/async-function/{}'.format(OPENFAAS_GATEWAY, service_name)
-        r = requests.post(
+        r = req_session.post(
             url,
             headers={'X-Callback-Url': cb_url},
             params=environments.env,

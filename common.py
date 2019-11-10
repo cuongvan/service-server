@@ -1,5 +1,13 @@
 from enum import auto, Enum
 from http import HTTPStatus as http
+import requests
+from requests.adapters import HTTPAdapter
+
+req_session = requests.Session()
+req_session.mount('https://', HTTPAdapter(pool_connections=2, pool_maxsize=10, pool_block=True))
+req_session.mount('http://', HTTPAdapter(pool_connections=2, pool_maxsize=10, pool_block=True))
+
+
 
 
 class Error(str, Enum):

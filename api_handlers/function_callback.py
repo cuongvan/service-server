@@ -15,7 +15,6 @@ logger = utils.create_logger('callback', logging.DEBUG)
 class FunctionCallback(Resource):
     def post(self, service_name):
         call_id = request.headers.get('X-Call-Id')
-        logger.info('Received a callback: %s', call_id)
         body = request.get_data()
         func_status = request.headers.get('X-Function-Status')
         if func_status == '502': # real tested
