@@ -15,6 +15,7 @@ logger = utils.create_logger('callback', logging.DEBUG)
 class FunctionCallback(Resource):
     def post(self, service_name):
         call_id = request.headers.get('X-Call-Id')
+        logger.info('Received a callback: %s', call_id)
         body = request.get_data()
         func_status = request.headers.get('X-Function-Status')
         if func_status == '502': # real tested
@@ -25,7 +26,7 @@ class FunctionCallback(Resource):
             body = json.loads(body)
             call_status = body.get('error', 'Unknown')
             if call_status == err.FUNCTION_EXEC_SUCCESS:
-                return_val = str(body['result'])
+                return_val = json.dumps(body['result'])
             elif call_status == err.MISSING_PARAM:
                 logger.critical('Missing env var for index.py: %s', body['param'])
                 return ''

@@ -13,7 +13,8 @@ class Error(str, Enum):
     MISSING_PARAM = auto()
     MISSING_FILE = auto()
     INVALID_NAME = auto()
-    IS_NOT_JSON = auto()
+    NOT_JSON_FORMAT = auto()
+    NOT_ZIP_FILE = auto()
     FUNCTION_ALREADY_EXISTS = auto()
     FUNCTION_NOT_FOUND = auto()
 

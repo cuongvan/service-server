@@ -3,3 +3,4 @@
 __pycache__/
 functions*/
 env.sh
+*.zip

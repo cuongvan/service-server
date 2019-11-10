@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 from pathlib import Path
 
 import requests, json, sys
@@ -24,11 +24,11 @@ def main():
     API = 'http://localhost'
     action, func_name = parse_args()
     func_dir = Path('funcs', func_name)
-
     if action == 'new':
         data = {'service_name': func_name}
         files = {
-            'handler.py': ('name1', open(func_dir / 'handler.py', 'rb'), 'application/octet-stream'),
+            # 'handler.py': ('name1', open(func_dir / 'handler.py', 'rb'), 'application/octet-stream'),
+            'code.zip': ('name1', open(func_dir / 'code.zip', 'rb'), 'application/octet-stream'),
             'json': ('name3', json.dumps(data), 'application/json')
         }
         if (func_dir / 'requirements.txt').exists():

@@ -43,7 +43,7 @@ class SyncExec(Resource):
 
 class AsyncExec(Resource):
     def post(self, service_name):
-        cb_url = 'http://192.168.100.6/callback/' + service_name
+        cb_url = project_conf.THIS_SERVER_HOST + '/callback/' + service_name
         # cb_url = 'https://en9gk6ah6047d.x.pipedream.net/' + service_name
         url = '{}/async-function/{}'.format(OPENFAAS_GATEWAY, service_name)
         r = requests.post(

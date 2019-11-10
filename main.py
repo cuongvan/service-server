@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#! /usr/bin/env python3.6
 
 from flask import Flask
 from flask_restful import Api
@@ -26,9 +26,7 @@ def config_flask_logging():
     handler.setFormatter(utils.log_formatter)
     log.addHandler(handler)
 
-config_flask_logging()
-
-
 if __name__ == "__main__":
     background_worker.start_worker()
+    config_flask_logging()
     app.run(host='0.0.0.0', port=project_conf.PORT, debug=False)
